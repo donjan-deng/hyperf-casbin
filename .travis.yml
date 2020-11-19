@@ -1,0 +1,32 @@
+language: php
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+    
+services:
+  - mysql
+
+jobs:
+  fast_finish: true
+  include:
+    # Hyperf 2.0
+    - php: 7.2
+      env: PHPUNIT=^7.0 SWOOLE_VERSION=4.5
+    - php: 7.3
+      env:  PHPUNIT=^7.0 SWOOLE_VERSION=4.5
+    - php: 7.4
+      env: PHPUNIT=^7.0 SWOOLE_VERSION=4.5
+
+before_install:  
+  - travis_retry composer self-update
+  - mysql -e 'create database if not exists casbin-test;'
+
+install:
+  - travis_retry pecl install -f swoole-$SWOOLE_VERSION
+  - travis_retry composer install --no-suggest --no-interaction
+
+script:
+  - composer test

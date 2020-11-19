@@ -1,0 +1,57 @@
+{
+    "name": "donjan-deng/hyperf-casbin",
+    "keywords": [
+        "hyperf",
+        "casbin",
+        "permission",
+        "access-control",
+        "authorization",
+        "rbac",
+        "acl",
+        "abac"
+    ],
+    "description": "An authorization library that supports access control models like ACL, RBAC, ABAC in hyperf. ",
+    "authors": [
+        {
+            "name": "Donjan",
+            "homepage": "https://github.com/donjan-deng",
+            "role": "Developer"
+        }
+    ],
+    "license": "Apache-2.0",
+    "require": {
+        "php": "^7.2",
+        "ext-swoole": ">=4.5",
+        "hyperf/database": "~2.0",
+        "hyperf/db-connection": "~2.0",
+        "hyperf/cache": "~2.0",
+        "hyperf/utils": "~2.0",
+        "hyperf/config": "~2.0",
+        "hyperf/logger": "~2.0",
+        "casbin/casbin": "~2.0",
+        "casbin/psr3-bridge": "^1.1",
+        "hyperf/command": "~2.0"
+    },
+    "require-dev": {
+        "hyperf/testing": "~2.0",
+        "mockery/mockery": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Donjan\\Casbin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Donjan\\Casbin\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "co-phpunit -c phpunit.xml --colors=always"
+    },
+    "extra": {
+        "hyperf": {
+            "config": "Donjan\\Casbin\\ConfigProvider"
+        }
+    }
+}
