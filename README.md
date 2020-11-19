@@ -1,5 +1,11 @@
 # Hyperf Casbin
 
+[![Build Status](https://www.travis-ci.org/donjan-deng/hyperf-casbin.svg?branch=master)](https://www.travis-ci.org/donjan-deng/hyperf-casbin)
+[![Coverage Status](https://coveralls.io/repos/github/donjan-deng/hyperf-casbin/badge.svg)](https://coveralls.io/github/donjan-deng/hyperf-casbin)
+[![Latest Stable Version](https://poser.pugx.org/donjan-deng/hyperf-casbin/v/stable)](https://packagist.org/packages/donjan-deng/hyperf-casbin)
+[![Total Downloads](https://poser.pugx.org/donjan-deng/hyperf-casbin/downloads)](https://packagist.org/packages/donjan-deng/hyperf-casbin)
+[![License](https://poser.pugx.org/donjan-deng/hyperf-casbin/license)](https://github.com/php-casbin/laravel-authz/blob/master/LICENSE)
+
 Casbin是一个强大的、高效的开源访问控制框架，其权限管理机制支持多种访问控制模型。本项目做了Hyperf适配并自带了一个RBAC模型，使用本项目前你需要先学会如何使用Casbin。
 
 ## 简单使用
