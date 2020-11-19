@@ -32,8 +32,4 @@ install:
   - travis_retry composer install --no-suggest --no-interaction
 
 script:
-  - mkdir -p build/logs
   - composer test
-
-after_script:
-  - travis_retry vendor/bin/php-coveralls -v
