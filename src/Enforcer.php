@@ -92,9 +92,7 @@ class Enforcer
         if (!$config['adapter']['class']) {
             throw new InvalidArgumentException("Enforcer adapter is not defined.");
         }
-        $adapter = make($config['adapter']['class'], [
-            'eloquent' => new Rule([], $name),
-        ]);
+        $adapter = make($config['adapter']['class']);
         return new BaseEnforcer($model, $adapter, $config['log']['enabled']);
     }
 

@@ -8,12 +8,12 @@ use Donjan\Casbin\Models\Rule;
 class RuleCacheTest extends TestCase
 {
 
-    public function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
     }
 
-    public function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
     }
@@ -58,7 +58,7 @@ class RuleCacheTest extends TestCase
 
         Db::enableQueryLog();
         Db::flushQueryLog();
-        
+
         $ruleModel->getAllFromCache();
         $this->assertCount(1, Db::getQueryLog());
 

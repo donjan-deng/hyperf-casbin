@@ -33,6 +33,7 @@ class Rule extends Model
      * @var array
      */
     protected $fillable = ['ptype', 'v0', 'v1', 'v2', 'v3', 'v4', 'v5'];
+
     /**
      * timestamps
      * 
@@ -107,9 +108,7 @@ class Rule extends Model
         if (!$this->config['cache']['enabled']) {
             return;
         }
-
         $this->forgetCache();
-        $this->getAllFromCache();
     }
 
     /**

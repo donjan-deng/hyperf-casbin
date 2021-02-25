@@ -1,18 +1,20 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Donjan\Casbin\Adapters;
 
 use Donjan\Casbin\Models\Rule;
+use Hyperf\DbConnection\Db;
 use Casbin\Persist\Adapter as AdapterContract;
+use Casbin\Persist\BatchAdapter;
 use Casbin\Model\Model;
 use Casbin\Persist\AdapterHelper;
 
 /**
  * DatabaseAdapter.
  */
-class DatabaseAdapter implements AdapterContract
+class DatabaseAdapter implements AdapterContract, BatchAdapter
 {
 
     use AdapterHelper;
@@ -25,13 +27,20 @@ class DatabaseAdapter implements AdapterContract
     protected $eloquent;
 
     /**
+     * Db
+     * @var Db 
+     */
+    protected $db;
+
+    /**
      * the DatabaseAdapter constructor.
      *
      * @param Rule $eloquent
      */
-    public function __construct(Rule $eloquent)
+    public function __construct(Rule $eloquent, Db $db)
     {
         $this->eloquent = $eloquent;
+        $this->db = $db;
     }
 
     /**
@@ -40,14 +49,13 @@ class DatabaseAdapter implements AdapterContract
      * @param string $ptype
      * @param array  $rule
      */
-    public function savePolicyLine(string $ptype, array $rule): void
+    public function savePolicyLine(string $ptype, array $rule)
     {
         $col['ptype'] = $ptype;
         foreach ($rule as $key => $value) {
             $col['v' . strval($key)] = $value;
         }
-
-        $this->eloquent->create($col);
+        return $col;
     }
 
     /**
@@ -76,13 +84,15 @@ class DatabaseAdapter implements AdapterContract
     {
         foreach ($model['p'] as $ptype => $ast) {
             foreach ($ast->policy as $rule) {
-                $this->savePolicyLine($ptype, $rule);
+                $row = $this->savePolicyLine($ptype, $rule);
+                $this->eloquent->create($row);
             }
         }
 
         foreach ($model['g'] as $ptype => $ast) {
             foreach ($ast->policy as $rule) {
-                $this->savePolicyLine($ptype, $rule);
+                $row = $this->savePolicyLine($ptype, $rule);
+                $this->eloquent->create($row);
             }
         }
     }
@@ -97,7 +107,26 @@ class DatabaseAdapter implements AdapterContract
      */
     public function addPolicy(string $sec, string $ptype, array $rule): void
     {
-        $this->savePolicyLine($ptype, $rule);
+        $row = $this->savePolicyLine($ptype, $rule);
+        $this->eloquent->create($row);
+    }
+
+    /**
+     * Adds a policy rules to the storage.
+     * This is part of the Auto-Save feature.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param string[][] $rules
+     */
+    public function addPolicies(string $sec, string $ptype, array $rules): void
+    {
+        $rows = [];
+        foreach ($rules as $rule) {
+            $rows[] = $this->savePolicyLine($ptype, $rule);
+        }
+        $this->eloquent->insert($rows);
+        $this->eloquent->refreshCache();
     }
 
     /**
@@ -109,18 +138,32 @@ class DatabaseAdapter implements AdapterContract
      */
     public function removePolicy(string $sec, string $ptype, array $rule): void
     {
-        $count = 0;
-
-        $instance = $this->eloquent->where('ptype', $ptype);
-
+        $query = $this->eloquent->where('ptype', $ptype);
         foreach ($rule as $key => $value) {
-            $instance->where('v' . strval($key), $value);
+            $query->where('v' . strval($key), $value);
         }
+        $query->delete();
+    }
 
-        foreach ($instance->get() as $model) {
-            if ($model->delete()) {
-                ++$count;
+    /**
+     * Removes policy rules from the storage.
+     * This is part of the Auto-Save feature.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param string[][] $rules
+     */
+    public function removePolicies(string $sec, string $ptype, array $rules): void
+    {
+        $this->db->beginTransaction();
+        try {
+            foreach ($rules as $rule) {
+                $this->removePolicy($sec, $ptype, $rule);
             }
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollback();
+            throw $e;
         }
     }
 
@@ -135,22 +178,15 @@ class DatabaseAdapter implements AdapterContract
      */
     public function removeFilteredPolicy(string $sec, string $ptype, int $fieldIndex, string ...$fieldValues): void
     {
-        $count = 0;
-
-        $instance = $this->eloquent->where('ptype', $ptype);
+        $query = $this->eloquent->where('ptype', $ptype);
         foreach (range(0, 5) as $value) {
             if ($fieldIndex <= $value && $value < $fieldIndex + count($fieldValues)) {
                 if ('' != $fieldValues[$value - $fieldIndex]) {
-                    $instance->where('v' . strval($value), $fieldValues[$value - $fieldIndex]);
+                    $query->where('v' . strval($value), $fieldValues[$value - $fieldIndex]);
                 }
             }
         }
-
-        foreach ($instance->get() as $model) {
-            if ($model->delete()) {
-                ++$count;
-            }
-        }
+        $query->delete();
     }
 
 }

@@ -8,7 +8,7 @@ use Donjan\Casbin\Models\Rule;
 class DatabaseAdapterTest extends TestCase
 {
 
-    public function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         Enforcer::addPermissionForUser('user1', 'data1', 'read');
@@ -18,21 +18,10 @@ class DatabaseAdapterTest extends TestCase
         Enforcer::addRoleForUser('user1', 'role1');
     }
 
-    public function tearDown()
+    protected function tearDown(): void
     {
         Rule::truncate();
         parent::tearDown();
-    }
-
-    public function testEnforce()
-    {
-        $this->assertTrue(Enforcer::enforce('user1', 'data1', 'read'));
-
-        $this->assertFalse(Enforcer::enforce('user2', 'data1', 'read'));
-        $this->assertTrue(Enforcer::enforce('user2', 'data2', 'write'));
-
-        $this->assertTrue(Enforcer::enforce('user1', 'data2', 'read'));
-        $this->assertTrue(Enforcer::enforce('user1', 'data2', 'write'));
     }
 
     public function testSavePolicy()
@@ -48,15 +37,44 @@ class DatabaseAdapterTest extends TestCase
         $this->assertTrue(Enforcer::enforce('user1', 'data4', 'read'));
     }
 
+    public function testAddPolicies()
+    {
+        $this->assertFalse(Enforcer::enforce('user1', 'add-policies-1', 'read'));
+        $this->assertFalse(Enforcer::enforce('user1', 'add-policies-2', 'read'));
+//        $this->assertFalse(Enforcer::enforce('user1', 'add-policies-3', 'read'));
+//        $this->assertFalse(Enforcer::enforce('user1', 'add-policies-4', 'read'));
+        Enforcer::AddPolicies([
+            ['user1', 'add-policies-1', 'read'],
+            ['user1', 'add-policies-2', 'read']
+        ]);
+//        Enforcer::AddPermissionsForUser('user1', [
+//            ['add-policies-3', 'read'],
+//            ['add-policies-4', 'read']
+//        ]);
+        $this->assertTrue(Enforcer::enforce('user1', 'add-policies-1', 'read'));
+        $this->assertTrue(Enforcer::enforce('user1', 'add-policies-2', 'read'));
+//        $this->assertTrue(Enforcer::enforce('user1', 'add-policies-3', 'read'));
+//        $this->assertTrue(Enforcer::enforce('user1', 'add-policies-4', 'read'));
+    }
+
     public function testRemovePolicy()
     {
-        $this->assertFalse(Enforcer::enforce('user1', 'data5', 'read'));
+        $this->assertTrue(Enforcer::enforce('user1', 'data1', 'read'));
+        Enforcer::RemovePolicy('user1', 'data1', 'read');
+        $this->assertFalse(Enforcer::enforce('user1', 'data1', 'read'));
+    }
 
-        Enforcer::addPermissionForUser('user1', 'data5', 'read');
-        $this->assertTrue(Enforcer::enforce('user1', 'data5', 'read'));
-
-        Enforcer::deletePermissionForUser('user1', 'data5', 'read');
-        $this->assertFalse(Enforcer::enforce('alice', 'data5', 'read'));
+    public function testRemovePolicies()
+    {
+        Enforcer::AddPolicies([
+            ['user1', 'add-policies-1', 'read'],
+            ['user1', 'add-policies-2', 'read']
+        ]);
+        $this->assertTrue(Enforcer::enforce('user1', 'add-policies-1', 'read'));
+        $this->assertTrue(Enforcer::enforce('user1', 'add-policies-2', 'read'));
+        Enforcer::deletePermissionsForUser('user1');
+        $this->assertFalse(Enforcer::enforce('user1', 'add-policies-1', 'read'));
+        $this->assertFalse(Enforcer::enforce('user1', 'add-policies-2', 'read'));
     }
 
     public function testRemoveFilteredPolicy()
