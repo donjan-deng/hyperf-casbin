@@ -6,7 +6,6 @@ use Casbin\Enforcer as BaseEnforcer;
 use Casbin\Model\Model;
 use Casbin\Log\Log;
 use Casbin\Bridge\Logger\LoggerBridge;
-use Donjan\Casbin\Models\Rule;
 use Psr\Container\ContainerInterface;
 use Hyperf\Logger\LoggerFactory;
 use Hyperf\Utils\ApplicationContext;
@@ -14,6 +13,28 @@ use InvalidArgumentException;
 
 /**
  * Enforcer
+ * @method static array getRolesForUser(string $name, string ...$domain)
+ * @method static array getUsersForRole(string $name, string ...$domain)
+ * @method static bool hasRoleForUser(string $name, string $role, string ...$domain)
+ * @method static bool addRoleForUser(string $user, string $role, string ...$domain)
+ * @method static bool deleteRoleForUser(string $user, string $role, string ...$domain)
+ * @method static bool deleteRolesForUser(string $user, string ...$domain)
+ * @method static bool deleteUser(string $user)
+ * @method static bool deleteRole(string $role)
+ * @method static bool deletePermission(string ...$permission)
+ * @method static bool addPermissionForUser(string $user, string ...$permission)
+ * @method static bool deletePermissionForUser(string $user, string ...$permission)
+ * @method static bool deletePermissionsForUser(string $user)
+ * @method static array getPermissionsForUser(string $user)
+ * @method static bool hasPermissionForUser(string $user, string ...$permission)
+ * @method static array getImplicitRolesForUser(string $name, string ...$domain)
+ * @method static array getImplicitPermissionsForUser(string $user, string ...$domain)
+ * @method static array getImplicitUsersForPermission(string ...$permission)
+ * @method static array getUsersForRoleInDomain(string $name, string $domain)
+ * @method static array getRolesForUserInDomain(string $name, string $domain)
+ * @method static array getPermissionsForUserInDomain(string $name, string $domain)
+ * @method static bool addRoleForUserInDomain(string $user, string $role, string $domain)
+ * @method static bool deleteRoleForUserInDomain(string $user, string $role, string $domain)
  */
 class Enforcer
 {
