@@ -27,7 +27,7 @@ Casbin只负责访问控制，在RBAC方案中也只是储存用户和角色之�
  php bin/hyperf.php vendor:publish donjan-deng/hyperf-casbin
 ```
 
-配置文件config/autoload/casbin.php
+配置文件config/autoload/casbin.php (建议开发时禁用缓存功能,有相关修改后删除runtime重启或者使用热重载组件，线上更新后清除旧缓存)
 
 运行迁移
 
