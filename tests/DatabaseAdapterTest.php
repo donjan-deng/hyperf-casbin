@@ -123,9 +123,6 @@ class DatabaseAdapterTest extends TestCase
                 ], Enforcer::getPolicy());
     }
 
-    /**
-     * @expectedException        InvalidFilterTypeException
-     */
     public function testLoadFilteredPolicy()
     {
         Enforcer::clearPolicy();
