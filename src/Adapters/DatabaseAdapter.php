@@ -6,18 +6,26 @@ namespace Donjan\Casbin\Adapters;
 
 use Donjan\Casbin\Models\Rule;
 use Hyperf\DbConnection\Db;
-use Casbin\Persist\Adapter as AdapterContract;
+use Casbin\Persist\Adapter;
 use Casbin\Persist\BatchAdapter;
+use Casbin\Persist\UpdatableAdapter;
+use Casbin\Persist\FilteredAdapter;
 use Casbin\Model\Model;
 use Casbin\Persist\AdapterHelper;
+use Casbin\Exceptions\InvalidFilterTypeException;
 
 /**
  * DatabaseAdapter.
  */
-class DatabaseAdapter implements AdapterContract, BatchAdapter
+class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, FilteredAdapter
 {
 
     use AdapterHelper;
+
+    /**
+     * @var bool
+     */
+    private $filtered = false;
 
     /**
      * Rules eloquent model.
@@ -187,6 +195,83 @@ class DatabaseAdapter implements AdapterContract, BatchAdapter
             }
         }
         $query->delete();
+    }
+
+    /**
+     * Updates a policy rule from storage.
+     * This is part of the Auto-Save feature.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param string[] $oldRule
+     * @param string[] $newPolicy
+     */
+    public function updatePolicy(string $sec, string $ptype, array $oldRule, array $newPolicy): void
+    {
+        $query = $this->eloquent->where('ptype', $ptype);
+        foreach ($oldRule as $k => $v) {
+            $query->where('v' . $k, $v);
+        }
+        $query->first();
+        $update = [];
+        foreach ($newPolicy as $k => $v) {
+            $update['v' . $k] = $v;
+        }
+        $query->update($update);
+    }
+
+    /**
+     * Loads only policy rules that match the filter.
+     *
+     * @param Model $model
+     * @param mixed $filter
+     */
+    public function loadFilteredPolicy(Model $model, $filter): void
+    {
+        $query = $this->eloquent->query();
+
+        if (is_string($filter)) {
+            $query->whereRaw($filter);
+        } else if ($filter instanceof Filter) {
+            foreach ($filter->p as $k => $v) {
+                $query->where($v, $filter->g[$k]);
+            }
+        } else if ($filter instanceof \Closure) {
+            $query->where($filter);
+        } else {
+            throw new InvalidFilterTypeException('invalid filter type');
+        }
+        $rows = $query->get()->makeHidden(['created_at', 'updated_at', 'id'])->toArray();
+        foreach ($rows as $row) {
+            $row = array_filter($row, function($value) {
+                return !is_null($value) && $value !== '';
+            });
+            $line = implode(', ', array_filter($row, function ($val) {
+                        return '' != $val && !is_null($val);
+                    }));
+            $this->loadPolicyLine(trim($line), $model);
+        }
+        $this->setFiltered(true);
+    }
+
+    /**
+     * Returns true if the loaded policy has been filtered.
+     *
+     * @return bool
+     */
+    public function isFiltered(): bool
+    {
+        return $this->filtered;
+    }
+
+    /**
+     * Sets filtered parameter.
+     *
+     * @param bool $filtered
+     */
+    public function setFiltered(bool $filtered): void
+    {
+        $this->filtered = $filtered;
     }
 
 }

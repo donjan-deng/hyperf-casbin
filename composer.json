@@ -28,7 +28,7 @@
         "hyperf/utils": "~2.0",
         "hyperf/config": "~2.0",
         "hyperf/logger": "~2.0",
-        "casbin/casbin": "~3.0",
+        "casbin/casbin": "~3.1",
         "casbin/psr3-bridge": "^1.1",
         "hyperf/command": "~2.0"
     },
