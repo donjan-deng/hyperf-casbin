@@ -74,10 +74,13 @@ class Enforcer
     {
         $name = $name ?: $this->getDefaultGuard();
 
+	//此处不能通过变量赋值：类已经是长生命周期：会导致无法更新最新的权限操作
+	return $this->resolve($name);
+	
+	//TODO del
         if (!isset($this->guards[$name])) {
             $this->guards[$name] = $this->resolve($name);
         }
-
         return $this->guards[$name];
     }
 
