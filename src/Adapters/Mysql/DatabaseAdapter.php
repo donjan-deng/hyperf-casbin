@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Donjan\Casbin\Adapters;
+namespace Donjan\Casbin\Adapters\Mysql;
 
-use Donjan\Casbin\Models\Rule;
+use Hyperf\Database\Schema\Schema;
+use Hyperf\Database\Schema\Blueprint;
+use Donjan\Casbin\Adapters\Mysql\Rule;
 use Hyperf\DbConnection\Db;
 use Casbin\Persist\Adapter;
 use Casbin\Persist\BatchAdapter;
@@ -41,14 +43,38 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     protected $db;
 
     /**
+     * tableName
+     * @var tableName 
+     */
+    protected $tableName;
+
+    /**
      * the DatabaseAdapter constructor.
      *
      * @param Rule $eloquent
      */
-    public function __construct(Rule $eloquent, Db $db)
+    public function __construct(Db $db, $tableName)
     {
-        $this->eloquent = $eloquent;
+        $this->tableName = $tableName;
+        $this->eloquent = make(Rule::class, ['attributes' => [], 'table' => $this->tableName]);
         $this->db = $db;
+        $this->initTable();
+    }
+
+    public function initTable()
+    {
+        if (!Schema::hasTable($this->tableName)) {
+            Schema::create($this->tableName, function (Blueprint $table) {
+                $table->increments('id');
+                $table->string('ptype')->nullable();
+                $table->string('v0')->nullable();
+                $table->string('v1')->nullable();
+                $table->string('v2')->nullable();
+                $table->string('v3')->nullable();
+                $table->string('v4')->nullable();
+                $table->string('v5')->nullable();
+            });
+        }
     }
 
     /**
@@ -73,7 +99,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
      */
     public function loadPolicy(Model $model): void
     {
-        $rows = $this->eloquent->getAllFromCache();
+        $rows = $this->eloquent->select('ptype', 'v0', 'v1', 'v2', 'v3', 'v4', 'v5')->get()->toArray();
 
         foreach ($rows as $row) {
             $line = implode(', ', array_filter($row, function ($val) {
@@ -134,7 +160,6 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
             $rows[] = $this->savePolicyLine($ptype, $rule);
         }
         $this->eloquent->insert($rows);
-        $this->eloquent->refreshCache();
     }
 
     /**
@@ -221,6 +246,29 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     }
 
     /**
+     * UpdatePolicies updates some policy rules to storage, like db, redis.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param string[][] $oldRules
+     * @param string[][] $newRules
+     * @return void
+     */
+    public function updatePolicies(string $sec, string $ptype, array $oldRules, array $newRules): void
+    {
+        $this->db->beginTransaction();
+        try {
+            foreach ($oldRules as $i => $oldRule) {
+                $this->updatePolicy($sec, $ptype, $oldRule, $newRules[$i]);
+            }
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollback();
+            throw $e;
+        }
+    }
+
+    /**
      * Loads only policy rules that match the filter.
      *
      * @param Model $model
@@ -228,7 +276,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
      */
     public function loadFilteredPolicy(Model $model, $filter): void
     {
-        $query = $this->eloquent->query();
+        $query = $this->eloquent->newQuery();
 
         if (is_string($filter)) {
             $query->whereRaw($filter);
@@ -241,7 +289,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
         } else {
             throw new InvalidFilterTypeException('invalid filter type');
         }
-        $rows = $query->get()->makeHidden(['created_at', 'updated_at', 'id'])->toArray();
+        $rows = $query->get()->makeHidden(['id'])->toArray();
         foreach ($rows as $row) {
             $row = array_filter($row, function($value) {
                 return !is_null($value) && $value !== '';

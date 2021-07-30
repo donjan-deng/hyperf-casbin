@@ -2,14 +2,15 @@
 
 namespace Donjan\Casbin\Tests;
 
-require_once BASE_PATH . '/database/migrations/create_rules_table.stub';
-
 use PHPUnit\Framework\TestCase as BaseTestCase;
+use Hyperf\Database\Schema\Schema;
+use Hyperf\Database\Schema\Blueprint;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Utils\ApplicationContext;
 use Hyperf\Cache\Driver\FileSystemDriver;
 use Hyperf\Utils\Packer\PhpSerializerPacker;
 use Hyperf\Contract\ApplicationInterface;
+use Donjan\Casbin\Enforcer;
 use Mockery;
 
 abstract class TestCase extends BaseTestCase
@@ -30,13 +31,6 @@ abstract class TestCase extends BaseTestCase
 
     protected function initConfig()
     {
-        $this->config->set('cache', [
-            'default' => [
-                'driver' => FileSystemDriver::class,
-                'packer' => PhpSerializerPacker::class,
-                'prefix' => 'c:',
-            ],
-        ]);
         $this->config->set('databases', [
             'default' => [
                 'driver' => env('DB_DRIVER', 'mysql'),
@@ -59,39 +53,31 @@ abstract class TestCase extends BaseTestCase
             ]
         ]);
         $this->config->set('casbin', [
-            'default' => [
-                'model' => [
-                    'config_type' => 'file',
-                    'config_file_path' => BASE_PATH . '/publish/casbin-rbac-model.conf',
-                    'config_text' => '',
+            'model' => [
+                'config_type' => 'file',
+                'config_file_path' => BASE_PATH . '/publish/casbin-rbac-model.conf',
+                'config_text' => '',
+            ],
+            'adapter' => [
+                'class' => \Donjan\Casbin\Adapters\Mysql\DatabaseAdapter::class,
+                'constructor' => [
+                    'tableName' => 'casbin_rule'
                 ],
-                'adapter' => [
-                    'class' => \Donjan\Casbin\Adapters\DatabaseAdapter::class,
-                    'table_name' => 'casbin_rule',
-                    'connection' => 'default'
-                ],
-                'log' => [
-                    'enabled' => false,
-                ],
-                'cache' => [
-                    'enabled' => false,
-                    'key' => 'rules',
-                    'ttl' => 24 * 60,
-                ],
+            ],
+            'log' => [
+                'enabled' => false,
             ]
         ]);
     }
 
     protected function initTable()
     {
-        $cmd = new \CreateRulesTable();
-        $cmd->up();
+        Enforcer::getAdapter()->initTable();
     }
 
     protected function tearDown(): void
     {
-        $cmd = new \CreateRulesTable();
-        $cmd->down();
+        Schema::dropIfExists(config('casbin.adapter.constructor.tableName'));
         $this->delDir(BASE_PATH . '/runtime/container');
         Mockery::close();
     }
@@ -99,20 +85,14 @@ abstract class TestCase extends BaseTestCase
     public function delDir($path)
     {
         if (is_dir($path)) {
-            //扫描一个目录内的所有目录和文件并返回数组
             $dirs = scandir($path);
             foreach ($dirs as $dir) {
-                //排除目录中的当前目录(.)和上一级目录(..)
                 if ($dir != '.' && $dir != '..') {
-                    //如果是目录则递归子目录，继续操作
                     $sonDir = $path . '/' . $dir;
                     if (is_dir($sonDir)) {
-                        //递归删除
                         $this->delDir($sonDir);
-                        //目录内的子目录和文件删除后删除空目录
                         @rmdir($sonDir);
                     } else {
-                        //如果是文件直接删除
                         @unlink($sonDir);
                     }
                 }

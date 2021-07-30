@@ -3,7 +3,6 @@
 namespace Donjan\Casbin\Tests;
 
 use Donjan\Casbin\Enforcer;
-use Donjan\Casbin\Models\Rule;
 
 class RbacApiTest extends TestCase
 {
@@ -11,7 +10,6 @@ class RbacApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->config->set('casbin.default.cache.enabled', false);
         Enforcer::loadPolicy();
     }
 
@@ -124,8 +122,8 @@ class RbacApiTest extends TestCase
     public function testHasPermissionForUser()
     {
         Enforcer::addPermissionForUser('user1', 'data1', 'read');
-        $this->assertTrue(Enforcer::hasPermissionForUser('user1', ...['data1','read']));
-        $this->assertFalse(Enforcer::hasPermissionForUser('user1', ...['data2','read']));
+        $this->assertTrue(Enforcer::hasPermissionForUser('user1', ...['data1', 'read']));
+        $this->assertFalse(Enforcer::hasPermissionForUser('user1', ...['data2', 'read']));
     }
 
     public function testGetImplicitRolesForUser()
@@ -145,4 +143,5 @@ class RbacApiTest extends TestCase
             ['admin1', 'data2', 'read']
         ]);
     }
+
 }

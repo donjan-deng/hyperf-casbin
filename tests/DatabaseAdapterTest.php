@@ -3,7 +3,6 @@
 namespace Donjan\Casbin\Tests;
 
 use Donjan\Casbin\Enforcer;
-use Donjan\Casbin\Models\Rule;
 use Casbin\Persist\Adapters\Filter;
 use Casbin\Exceptions\InvalidFilterTypeException;
 
@@ -22,7 +21,6 @@ class DatabaseAdapterTest extends TestCase
 
     protected function tearDown(): void
     {
-        Rule::truncate();
         parent::tearDown();
     }
 
@@ -139,14 +137,13 @@ class DatabaseAdapterTest extends TestCase
         } catch (InvalidFilterTypeException $e) {
             $this->expectExceptionMessage($e->getMessage());
         }
-
+        
         // string
         $filter = "v0 = 'user2'";
         Enforcer::loadFilteredPolicy($filter);
         $this->assertEquals([
             ['user2', 'data2', 'write']
                 ], Enforcer::getPolicy());
-
         // Filter
         $filter = new Filter(['v2'], ['read']);
         Enforcer::loadFilteredPolicy($filter);
@@ -154,7 +151,7 @@ class DatabaseAdapterTest extends TestCase
             ['user1', 'data1', 'read'],
             ['role1', 'data2', 'read'],
                 ], Enforcer::getPolicy());
-
+        var_dump('here');
         // Closure
         Enforcer::loadFilteredPolicy(function ($query) {
             $query->where('v1', 'data1');
@@ -162,6 +159,35 @@ class DatabaseAdapterTest extends TestCase
 
         $this->assertEquals([
             ['user1', 'data1', 'read'],
+                ], Enforcer::getPolicy());
+    }
+
+    public function testUpdatePolicies()
+    {
+
+        $this->assertEquals([
+            ['user1', 'data1', 'read'],
+            ['user2', 'data2', 'write'],
+            ['role1', 'data2', 'read'],
+            ['role1', 'data2', 'write'],
+                ], Enforcer::getPolicy());
+
+        $oldPolicies = [
+            ['user1', 'data1', 'read'],
+            ['user2', 'data2', 'write'],
+        ];
+        $newPolicies = [
+            ['user1', 'data1', 'write'],
+            ['user2', 'data2', 'read'],
+        ];
+
+        Enforcer::updatePolicies($oldPolicies, $newPolicies);
+
+        $this->assertEquals([
+            ['user1', 'data1', 'write'],
+            ['user2', 'data2', 'read'],
+            ['role1', 'data2', 'read'],
+            ['role1', 'data2', 'write'],
                 ], Enforcer::getPolicy());
     }
 

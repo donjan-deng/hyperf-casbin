@@ -45,11 +45,10 @@ class Enforcer
     protected $container;
 
     /**
-     * The array of created "guards".
      *
-     * @var array
+     * @var Casbin\Enforcer $enforcer
      */
-    protected $guards = [];
+    protected $enforcer;
 
     /**
      * Create a new Enforcer instance.
@@ -64,67 +63,37 @@ class Enforcer
     /**
      * Attempt to get the enforcer from the local cache.
      *
-     * @param string $name
-     *
      * @return \Casbin\Enforcer
      *
      * @throws \InvalidArgumentException
      */
-    public function guard($name = null)
+    public function instance()
     {
-        $name = $name ?: $this->getDefaultGuard();
+        if (!$this->enforcer) {
+            $config = config('casbin');
+            if (is_null($config)) {
+                throw new InvalidArgumentException("Enforcer config is not defined.");
+            }
 
-        if (!isset($this->guards[$name])) {
-            $this->guards[$name] = $this->resolve($name);
+            if ($config['log']['enabled']) {
+                $logger = $this->container->get(LoggerFactory::class)->get();
+                Log::setLogger(new LoggerBridge($logger));
+            }
+
+            $model = new Model();
+            $configType = $config['model']['config_type'];
+            if ('file' == $configType) {
+                $model->loadModel($config['model']['config_file_path']);
+            } elseif ('text' == $configType) {
+                $model->loadModelFromText($config['model']['config_text']);
+            }
+            if (!$config['adapter']['class']) {
+                throw new InvalidArgumentException("Enforcer adapter is not defined.");
+            }
+            $adapter = make($config['adapter']['class'], $config['adapter']['constructor']);
+            $this->enforcer = new BaseEnforcer($model, $adapter, $config['log']['enabled']);
         }
-
-        return $this->guards[$name];
-    }
-
-    /**
-     * Resolve the given guard.
-     *
-     * @param string $name
-     *
-     * @return \Casbin\Enforcer
-     *
-     * @throws \InvalidArgumentException
-     */
-    protected function resolve($name)
-    {
-        $config = config('casbin.' . $name);
-
-        if (is_null($config)) {
-            throw new InvalidArgumentException("Enforcer [{$name}] is not defined.");
-        }
-
-        if ($config['log']['enabled']) {
-            $logger = $this->container->get(LoggerFactory::class)->get();
-            Log::setLogger(new LoggerBridge($logger));
-        }
-
-        $model = new Model();
-        $configType = $config['model']['config_type'];
-        if ('file' == $configType) {
-            $model->loadModel($config['model']['config_file_path']);
-        } elseif ('text' == $configType) {
-            $model->loadModelFromText($config['model']['config_text']);
-        }
-        if (!$config['adapter']['class']) {
-            throw new InvalidArgumentException("Enforcer adapter is not defined.");
-        }
-        $adapter = make($config['adapter']['class']);
-        return new BaseEnforcer($model, $adapter, $config['log']['enabled']);
-    }
-
-    /**
-     * Get the default enforcer guard name.
-     *
-     * @return string
-     */
-    public function getDefaultGuard()
-    {
-        return 'default';
+        return $this->enforcer;
     }
 
     /**
@@ -137,7 +106,7 @@ class Enforcer
      */
     public function __call($method, $parameters)
     {
-        return $this->guard()->{$method}(...$parameters);
+        return $this->instance()->{$method}(...$parameters);
     }
 
     /**

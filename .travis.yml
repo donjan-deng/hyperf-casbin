@@ -12,13 +12,11 @@ services:
 jobs:
   fast_finish: true
   include:
-    # Hyperf 2.0
-    - php: 7.2
-      env: PHPUNIT=^7.0 SWOOLE_VERSION="4.5.5"
+    # Hyperf 2.2
     - php: 7.3
-      env: PHPUNIT=^7.0 SWOOLE_VERSION="4.5.5"
+      env: PHPUNIT=^9.0 SWOOLE_VERSION="4.5.5"
     - php: 7.4
-      env: PHPUNIT=^7.0 SWOOLE_VERSION="4.5.5"
+      env: PHPUNIT=^9.0 SWOOLE_VERSION="4.5.5"
 
 before_install:
   - travis_retry composer self-update

@@ -15,6 +15,23 @@ Casbin只负责访问控制，在RBAC方案中也只是储存用户和角色之�
 
 本项目主版本与Casbin主版本相同，子版本和修订版本为项目独有
 
+#### 3.6 重大变更
+
+3.6以下版本升级3.6需要更改配置文件<https://github.com/donjan-deng/hyperf-casbin/blob/master/publish/casbin.php>照着更改。
+
+* 因策略已经载入内存，数据库查询都比较少，所以去除了缓存功能。
+* 去除了多实例功能，有此需求可使用Casbin API实现。
+* Adapter分离，可以通过配置文件桥接其他Adapter，实例为`make('class','constructor')`。
+
+```
+    'adapter' => [
+        'class' => \Donjan\Casbin\Adapters\Mysql\DatabaseAdapter::class,
+        'constructor' => [ //constructor 为构造参数
+            'tableName' => 'casbin_rule'
+        ],
+    ],
+```
+
 ### 安装
 
  ```
@@ -27,18 +44,7 @@ Casbin只负责访问控制，在RBAC方案中也只是储存用户和角色之�
  php bin/hyperf.php vendor:publish donjan-deng/hyperf-casbin
 ```
 
-配置文件config/autoload/casbin.php (建议开发时禁用缓存功能,有相关修改后删除runtime重启或者使用热重载组件，线上更新后清除旧缓存)
-
-运行迁移
-
-```
-php bin/hyperf.php migrate
-```
-命令
-
-```
-php bin/hyperf.php casbin:cache-clear //清除缓存
-```
+配置文件config/autoload/casbin.php
 
 API
 
@@ -108,45 +114,6 @@ Enforcer::enforce("user1", "/user", "edit")
 
 ```
 更多使用方法详见官方API
-
-### 多个实例
-
-```php
-
-config/autoload/casbin.php
-
-return [
-    'default' => [
-        'model' => [
-            'config_type' => 'file',
-            'config_file_path' => BASE_PATH . '/config/autoload/casbin-rbac-model.conf',
-            'config_text' => '',
-        ],
-        'adapter' => [
-            'class' => \Donjan\Casbin\Adapters\DatabaseAdapter::class,
-            'table_name' => 'casbin_rule_rbac',
-            'connection' => 'default'
-        ],
-        //...
-    ],
-    'second' => [
-        'model' => [
-            'config_type' => 'file',
-            'config_file_path' => BASE_PATH . '/config/autoload/casbin-restful-model.conf',
-            'config_text' => '',
-        ],
-        'adapter' => [
-            'class' => \Donjan\Casbin\Adapters\DatabaseAdapter::class,
-            'table_name' => 'casbin_rule_restful',
-            'connection' => 'default'
-        ],
-        //...
-    ],
-]
-
-Enforcer::guard('second')->enforce("user1", "data1", "edit");
-
-```
 
 ## 官方资源
 
