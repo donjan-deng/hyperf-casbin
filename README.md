@@ -1,6 +1,6 @@
 # Hyperf Casbin
 
-[![Build Status](https://www.travis-ci.org/donjan-deng/hyperf-casbin.svg?branch=master)](https://www.travis-ci.org/donjan-deng/hyperf-casbin)
+[![Test](https://github.com/donjan-deng/hyperf-casbin/actions/workflows/test.yml/badge.svg)](https://github.com/donjan-deng/hyperf-casbin/actions/workflows/test.yml)
 [![Latest Stable Version](https://poser.pugx.org/donjan-deng/hyperf-casbin/v/stable)](https://packagist.org/packages/donjan-deng/hyperf-casbin)
 [![Total Downloads](https://poser.pugx.org/donjan-deng/hyperf-casbin/downloads)](https://packagist.org/packages/donjan-deng/hyperf-casbin)
 [![License](https://poser.pugx.org/donjan-deng/hyperf-casbin/license)](https://github.com/php-casbin/laravel-authz/blob/master/LICENSE)
