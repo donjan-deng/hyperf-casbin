@@ -19,15 +19,6 @@ jobs:
       SW_VERSION: ${{ matrix.sw-version }}
       MYSQL_VERSION: '5.7'
       YASD_VERSION: 'v0.3.9'
-    services:
-      image: mysql:${MYSQL_VERSION}
-      ports: 
-        - 3306:3306
-      env:
-        MYSQL_ROOT_PASSWORD: ''
-        MYSQL_ALLOW_EMPTY_PASSWORD: true
-        MYSQL_DATABASE: 'casbin-test'
-      command: --default-authentication-plugin=mysql_native_password
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -72,5 +63,7 @@ jobs:
           php --ri yasd
       - name: Setup Packages
         run: composer update -o
+      - name: Setup Mysql
+        run: bash ./.github/scripts/setup.mysql.sh
       - name: Run Test Cases
         run: composer test
