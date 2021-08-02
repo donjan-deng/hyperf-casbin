@@ -24,7 +24,7 @@ jobs:
       ports: 
         - 3306:3306
       env:
-        MYSQL_ROOT_PASSWORD:
+        MYSQL_ROOT_PASSWORD: ''
         MYSQL_ALLOW_EMPTY_PASSWORD: true
         MYSQL_DATABASE: 'casbin-test'
       command: --default-authentication-plugin=mysql_native_password
