@@ -9,6 +9,7 @@ use Casbin\Bridge\Logger\LoggerBridge;
 use Psr\Container\ContainerInterface;
 use Hyperf\Logger\LoggerFactory;
 use Hyperf\Utils\ApplicationContext;
+use Hyperf\Utils\Context;
 use InvalidArgumentException;
 
 /**
@@ -69,7 +70,7 @@ class Enforcer
      */
     public function instance()
     {
-        if (!$this->enforcer) {
+        $get = function() {
             $config = config('casbin');
             if (is_null($config)) {
                 throw new InvalidArgumentException("Enforcer config is not defined.");
@@ -91,9 +92,9 @@ class Enforcer
                 throw new InvalidArgumentException("Enforcer adapter is not defined.");
             }
             $adapter = make($config['adapter']['class'], $config['adapter']['constructor']);
-            $this->enforcer = new BaseEnforcer($model, $adapter, $config['log']['enabled']);
-        }
-        return $this->enforcer;
+            return new BaseEnforcer($model, $adapter, $config['log']['enabled']);
+        };
+        return Context::getOrSet('enforcer', $get());
     }
 
     /**
