@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Donjan\Casbin\Adapters\Mysql;
 
+use Psr\Container\ContainerInterface;
 use Hyperf\Database\Schema\Schema;
 use Hyperf\Database\Schema\Blueprint;
 use Donjan\Casbin\Adapters\Mysql\Rule;
 use Hyperf\DbConnection\Db;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Casbin\Persist\Adapter;
 use Casbin\Persist\BatchAdapter;
 use Casbin\Persist\UpdatableAdapter;
@@ -15,6 +17,7 @@ use Casbin\Persist\FilteredAdapter;
 use Casbin\Model\Model;
 use Casbin\Persist\AdapterHelper;
 use Casbin\Exceptions\InvalidFilterTypeException;
+use Donjan\Casbin\Event\PolicyChanged;
 
 /**
  * DatabaseAdapter.
@@ -37,10 +40,21 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     protected $eloquent;
 
     /**
+     * @var ContainerInterface
+     */
+    private $container;
+
+    /**
      * Db
      * @var Db 
      */
     protected $db;
+
+    /**
+     * Db
+     * @var EventDispatcherInterface 
+     */
+    protected $eventDispatcher;
 
     /**
      * tableName
@@ -53,11 +67,13 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
      *
      * @param Rule $eloquent
      */
-    public function __construct(Db $db, $tableName)
+    public function __construct(ContainerInterface $container, $tableName)
     {
         $this->tableName = $tableName;
         $this->eloquent = make(Rule::class, ['attributes' => [], 'table' => $this->tableName]);
-        $this->db = $db;
+        $this->container = $container;
+        $this->db = $this->container->get(Db::class);
+        $this->eventDispatcher = $this->container->get(EventDispatcherInterface::class);
         $this->initTable();
     }
 
@@ -129,6 +145,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
                 $this->eloquent->create($row);
             }
         }
+        $this->eventDispatcher->dispatch(new PolicyChanged(__METHOD__, func_get_args()));
     }
 
     /**
@@ -143,6 +160,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     {
         $row = $this->savePolicyLine($ptype, $rule);
         $this->eloquent->create($row);
+        $this->eventDispatcher->dispatch(new PolicyChanged(__METHOD__, func_get_args()));
     }
 
     /**
@@ -160,6 +178,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
             $rows[] = $this->savePolicyLine($ptype, $rule);
         }
         $this->eloquent->insert($rows);
+        $this->eventDispatcher->dispatch(new PolicyChanged(__METHOD__, func_get_args()));
     }
 
     /**
@@ -176,6 +195,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
             $query->where('v' . strval($key), $value);
         }
         $query->delete();
+        $this->eventDispatcher->dispatch(new PolicyChanged(__METHOD__, func_get_args()));
     }
 
     /**
@@ -194,6 +214,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
                 $this->removePolicy($sec, $ptype, $rule);
             }
             $this->db->commit();
+            $this->eventDispatcher->dispatch(new PolicyChanged(__METHOD__, func_get_args()));
         } catch (\Throwable $e) {
             $this->db->rollback();
             throw $e;
@@ -220,6 +241,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
             }
         }
         $query->delete();
+        $this->eventDispatcher->dispatch(new PolicyChanged(__METHOD__, func_get_args()));
     }
 
     /**
@@ -243,6 +265,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
             $update['v' . $k] = $v;
         }
         $query->update($update);
+        $this->eventDispatcher->dispatch(new PolicyChanged(__METHOD__, func_get_args()));
     }
 
     /**
@@ -262,6 +285,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
                 $this->updatePolicy($sec, $ptype, $oldRule, $newRules[$i]);
             }
             $this->db->commit();
+            $this->eventDispatcher->dispatch(new PolicyChanged(__METHOD__, func_get_args()));
         } catch (\Throwable $e) {
             $this->db->rollback();
             throw $e;

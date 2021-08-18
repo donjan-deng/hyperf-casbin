@@ -3,14 +3,8 @@
 namespace Donjan\Casbin;
 
 use Casbin\Enforcer as BaseEnforcer;
-use Casbin\Model\Model;
-use Casbin\Log\Log;
-use Casbin\Bridge\Logger\LoggerBridge;
 use Psr\Container\ContainerInterface;
-use Hyperf\Logger\LoggerFactory;
 use Hyperf\Utils\ApplicationContext;
-use Hyperf\Utils\Context;
-use InvalidArgumentException;
 
 /**
  * Enforcer
@@ -40,19 +34,14 @@ use InvalidArgumentException;
 class Enforcer
 {
 
+    protected $server;
+
     /**
      * @var ContainerInterface
      */
     protected $container;
 
     /**
-     *
-     * @var Casbin\Enforcer $enforcer
-     */
-    protected $enforcer;
-
-    /**
-     * Create a new Enforcer instance.
      *
      * @param \Psr\Container\ContainerInterface $container
      */
@@ -61,57 +50,12 @@ class Enforcer
         $this->container = $container;
     }
 
-    /**
-     * Attempt to get the enforcer from the local cache.
-     *
-     * @return \Casbin\Enforcer
-     *
-     * @throws \InvalidArgumentException
-     */
-    public function instance()
-    {
-        $get = function() {
-            $config = config('casbin');
-            if (is_null($config)) {
-                throw new InvalidArgumentException("Enforcer config is not defined.");
-            }
-
-            if ($config['log']['enabled']) {
-                $logger = $this->container->get(LoggerFactory::class)->get();
-                Log::setLogger(new LoggerBridge($logger));
-            }
-
-            $model = new Model();
-            $configType = $config['model']['config_type'];
-            if ('file' == $configType) {
-                $model->loadModel($config['model']['config_file_path']);
-            } elseif ('text' == $configType) {
-                $model->loadModelFromText($config['model']['config_text']);
-            }
-            if (!$config['adapter']['class']) {
-                throw new InvalidArgumentException("Enforcer adapter is not defined.");
-            }
-            $adapter = make($config['adapter']['class'], $config['adapter']['constructor']);
-            return new BaseEnforcer($model, $adapter, $config['log']['enabled']);
-        };
-        return Context::getOrSet('enforcer', $get());
-    }
-
-    /**
-     * call the default driver instance.
-     *
-     * @param string $method
-     * @param array  $parameters
-     *
-     * @return mixed
-     */
     public function __call($method, $parameters)
     {
-        return $this->instance()->{$method}(...$parameters);
+        return $this->container->get(BaseEnforcer::class)->{$method}(...$parameters);
     }
 
     /**
-     * call the default driver instance.
      *
      * @param string $method
      * @param array  $parameters
@@ -120,7 +64,7 @@ class Enforcer
      */
     public static function __callStatic($method, $parameters)
     {
-        return ApplicationContext::getContainer()->get(Enforcer::class)->{$method}(...$parameters);
+        return ApplicationContext::getContainer()->get(BaseEnforcer::class)->{$method}(...$parameters);
     }
 
 }
