@@ -36,7 +36,9 @@ class OnPolicyChangedListener implements ListenerInterface
             $workerCount = $server->setting['worker_num'] + ($server->setting['task_worker_num'] ?? 0) - 1;
             if ($workerCount > 0) {
                 for ($workerId = 0; $workerId <= $workerCount; ++$workerId) {
-                    $server->sendMessage(new PipeMessage(PipeMessage::LOAD_POLICY), $workerId);
+                    if ($server->worker_id != $workerId) {
+                        $server->sendMessage(new PipeMessage(PipeMessage::LOAD_POLICY), $workerId);
+                    }
                 }
             }
             if (class_exists(ProcessCollector::class) && !ProcessCollector::isEmpty()) {
