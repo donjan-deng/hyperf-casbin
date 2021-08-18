@@ -5,7 +5,6 @@ declare(strict_types = 1);
 error_reporting(E_ALL);
 date_default_timezone_set('Asia/Shanghai');
 
-use Hyperf\Di\ClassLoader;
 use Hyperf\Config\Config;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Di\Container;

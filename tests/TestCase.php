@@ -23,6 +23,7 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         $this->container = ApplicationContext::getContainer();
+        $this->container->define(\Casbin\Enforcer::class,\Donjan\Casbin\EnforcerFactory::class);
         $this->config = $this->container->get(ConfigInterface::class);
         $this->app = $this->container->get(ApplicationInterface::class);
         $this->initConfig();
@@ -67,6 +68,10 @@ abstract class TestCase extends BaseTestCase
             'log' => [
                 'enabled' => false,
             ]
+        ]);
+        $this->config->set('listeners', [
+            \Donjan\Casbin\Listener\OnPipeMessageListener::class,
+            \Donjan\Casbin\Listener\OnPolicyChangedListener::class
         ]);
     }
 
