@@ -121,47 +121,6 @@ class DatabaseAdapterTest extends TestCase
                 ], Enforcer::getPolicy());
     }
 
-    public function testLoadFilteredPolicy()
-    {
-        Enforcer::clearPolicy();
-        $adapter = Enforcer::getAdapter();
-        $adapter->setFiltered(true);
-        $this->assertEquals([], Enforcer::getPolicy());
-
-        // invalid filter type
-        try {
-            $filter = ['user1', 'data1', 'read'];
-            Enforcer::loadFilteredPolicy($filter);
-            $e = InvalidFilterTypeException::class;
-            $this->fail("Expected exception $e not thrown");
-        } catch (InvalidFilterTypeException $e) {
-            $this->expectExceptionMessage($e->getMessage());
-        }
-        
-        // string
-        $filter = "v0 = 'user2'";
-        Enforcer::loadFilteredPolicy($filter);
-        $this->assertEquals([
-            ['user2', 'data2', 'write']
-                ], Enforcer::getPolicy());
-        // Filter
-        $filter = new Filter(['v2'], ['read']);
-        Enforcer::loadFilteredPolicy($filter);
-        $this->assertEquals([
-            ['user1', 'data1', 'read'],
-            ['role1', 'data2', 'read'],
-                ], Enforcer::getPolicy());
-        var_dump('here');
-        // Closure
-        Enforcer::loadFilteredPolicy(function ($query) {
-            $query->where('v1', 'data1');
-        });
-
-        $this->assertEquals([
-            ['user1', 'data1', 'read'],
-                ], Enforcer::getPolicy());
-    }
-
     public function testUpdatePolicies()
     {
 
@@ -188,6 +147,55 @@ class DatabaseAdapterTest extends TestCase
             ['user2', 'data2', 'read'],
             ['role1', 'data2', 'read'],
             ['role1', 'data2', 'write'],
+                ], Enforcer::getPolicy());
+    }
+
+    public function testUpdateFilteredPolicies()
+    {
+        $this->assertTrue(Enforcer::enforce('user1', 'data1', 'read'));
+        $this->assertFalse(Enforcer::enforce('user1', 'data1', 'write'));
+        Enforcer::updateFilteredPolicies([['user1', 'data1', 'write']], 0, 'user1', 'data1', 'read');
+        $this->assertFalse(Enforcer::enforce('user1', 'data1', 'read'));
+        $this->assertTrue(Enforcer::enforce('user1', 'data1', 'write'));
+    }
+
+    public function testLoadFilteredPolicy()
+    {
+        Enforcer::clearPolicy();
+        $adapter = Enforcer::getAdapter();
+        $adapter->setFiltered(true);
+        $this->assertEquals([], Enforcer::getPolicy());
+
+        // invalid filter type
+        try {
+            $filter = ['user1', 'data1', 'read'];
+            Enforcer::loadFilteredPolicy($filter);
+            $e = InvalidFilterTypeException::class;
+            $this->fail("Expected exception $e not thrown");
+        } catch (InvalidFilterTypeException $e) {
+            $this->expectExceptionMessage($e->getMessage());
+        }
+
+        // string
+        $filter = "v0 = 'user2'";
+        Enforcer::loadFilteredPolicy($filter);
+        $this->assertEquals([
+            ['user2', 'data2', 'write']
+                ], Enforcer::getPolicy());
+        // Filter
+        $filter = new Filter(['v2'], ['read']);
+        Enforcer::loadFilteredPolicy($filter);
+        $this->assertEquals([
+            ['user1', 'data1', 'read'],
+            ['role1', 'data2', 'read'],
+                ], Enforcer::getPolicy());
+        // Closure
+        Enforcer::loadFilteredPolicy(function ($query) {
+            $query->where('v1', 'data1');
+        });
+
+        $this->assertEquals([
+            ['user1', 'data1', 'read'],
                 ], Enforcer::getPolicy());
     }
 

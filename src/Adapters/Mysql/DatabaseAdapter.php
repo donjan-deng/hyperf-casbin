@@ -293,6 +293,44 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     }
 
     /**
+     * UpdateFilteredPolicies deletes old rules and adds new rules.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array $newPolicies
+     * @param integer $fieldIndex
+     * @param string ...$fieldValues
+     * @return array
+     */
+    public function updateFilteredPolicies(string $sec, string $ptype, array $newPolicies, int $fieldIndex, string ...$fieldValues): array
+    {
+        $query = $this->eloquent->where('ptype', $ptype);
+        foreach (range(0, 5) as $idx) {
+            if ($fieldIndex <= $idx && $idx < $fieldIndex + count($fieldValues)) {
+                $value = $fieldValues[$idx - $fieldIndex];
+                if ($value) {
+                    $query->where('v' . strval($idx), $value);
+                }
+            }
+        }
+        $wheres = collect($query->getQuery()->wheres);
+        $wheres->shift();//remove ptype
+        $oldRules = [];
+        $oldRules[] = $wheres->pluck('value')->all();
+        $this->db->beginTransaction();
+        try {
+            $this->addPolicies($sec, $ptype, $newPolicies);
+            $query->delete();
+            $this->db->commit();
+            $this->eventDispatcher->dispatch(new PolicyChanged(__METHOD__, func_get_args()));
+            return $oldRules;
+        } catch (\Throwable $e) {
+            $this->db->rollback();
+            throw $e;
+        }
+    }
+
+    /**
      * Loads only policy rules that match the filter.
      *
      * @param Model $model
