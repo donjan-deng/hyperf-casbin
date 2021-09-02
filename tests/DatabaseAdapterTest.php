@@ -41,20 +41,12 @@ class DatabaseAdapterTest extends TestCase
     {
         $this->assertFalse(Enforcer::enforce('user1', 'add-policies-1', 'read'));
         $this->assertFalse(Enforcer::enforce('user1', 'add-policies-2', 'read'));
-//        $this->assertFalse(Enforcer::enforce('user1', 'add-policies-3', 'read'));
-//        $this->assertFalse(Enforcer::enforce('user1', 'add-policies-4', 'read'));
         Enforcer::AddPolicies([
             ['user1', 'add-policies-1', 'read'],
             ['user1', 'add-policies-2', 'read']
         ]);
-//        Enforcer::AddPermissionsForUser('user1', [
-//            ['add-policies-3', 'read'],
-//            ['add-policies-4', 'read']
-//        ]);
         $this->assertTrue(Enforcer::enforce('user1', 'add-policies-1', 'read'));
         $this->assertTrue(Enforcer::enforce('user1', 'add-policies-2', 'read'));
-//        $this->assertTrue(Enforcer::enforce('user1', 'add-policies-3', 'read'));
-//        $this->assertTrue(Enforcer::enforce('user1', 'add-policies-4', 'read'));
     }
 
     public function testRemovePolicy()
@@ -72,7 +64,10 @@ class DatabaseAdapterTest extends TestCase
         ]);
         $this->assertTrue(Enforcer::enforce('user1', 'add-policies-1', 'read'));
         $this->assertTrue(Enforcer::enforce('user1', 'add-policies-2', 'read'));
-        Enforcer::deletePermissionsForUser('user1');
+        Enforcer::RemovePolicies([
+            ['user1', 'add-policies-1', 'read'],
+            ['user1', 'add-policies-2', 'read']
+        ]);
         $this->assertFalse(Enforcer::enforce('user1', 'add-policies-1', 'read'));
         $this->assertFalse(Enforcer::enforce('user1', 'add-policies-2', 'read'));
     }

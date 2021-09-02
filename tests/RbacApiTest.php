@@ -98,7 +98,7 @@ class RbacApiTest extends TestCase
         Enforcer::addPermissionForUser('user1', 'data1', 'read');
         Enforcer::addPermissionForUser('user1', 'data2', 'read');
         Enforcer::deletePermissionForUser('user1', 'data2');
-        Enforcer::loadPolicy(); //php-casbin 未能删除model的数据
+        Enforcer::loadPolicy(); //php-casbin 未能删除model的数据 Model\Policy.php removePolicy, deletePermissionForUser('user1', 'data2','read') 完全匹配才能删除
         $this->assertTrue(Enforcer::enforce('user1', 'data1', 'read'));
         $this->assertFalse(Enforcer::enforce('user1', 'data2', 'read'));
     }

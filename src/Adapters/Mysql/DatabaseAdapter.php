@@ -259,7 +259,6 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
         foreach ($oldRule as $k => $v) {
             $query->where('v' . $k, $v);
         }
-        $query->first();
         $update = [];
         foreach ($newPolicy as $k => $v) {
             $update['v' . $k] = $v;
