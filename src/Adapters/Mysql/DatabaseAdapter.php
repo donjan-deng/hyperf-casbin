@@ -293,6 +293,59 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     }
 
     /**
+     * UpdateFilteredPolicies deletes old rules and adds new rules.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array $newPolicies
+     * @param integer $fieldIndex
+     * @param string ...$fieldValues
+     * @return array
+     */
+    public function updateFilteredPolicies(string $sec, string $ptype, array $newPolicies, int $fieldIndex, string ...$fieldValues): array
+    {
+        $where['ptype'] = $ptype;
+        foreach ($fieldValues as $fieldValue) {
+            if (!is_null($fieldValue) && $fieldValue !== '') {
+                $where['v'. $fieldIndex++] = $fieldValue;
+            }
+        }
+
+        $newP = [];
+        $oldP = [];
+        foreach ($newPolicies as $newRule) {
+            $col['ptype'] = $ptype;
+            foreach ($newRule as $key => $value) {
+                $col['v' . strval($key)] = $value;
+            }
+            $newP[] = $col;
+        }
+
+        $oldRules = $this->eloquent->where($where);
+        $oldP = $oldRules->get()->makeHidden(['id'])->toArray();
+        foreach ($oldP as &$item) {
+            $item = array_filter($item, function ($value) {
+                return !is_null($value) && $value !== '';
+            });
+            unset($item['ptype']);
+        }
+
+        $this->db->beginTransaction();
+        try {
+            $oldRules->delete();
+            $this->eloquent->create($newP);
+            $this->db->commit();
+            $this->eventDispatcher->dispatch(new PolicyChanged(__METHOD__, func_get_args()));
+        } catch (\Throwable $e) {
+            $this->db->rollback();
+            throw $e;
+        }
+
+        // return deleted rules
+        return $oldP;
+    }
+
+    /**
      * Loads only policy rules that match the filter.
      *
      * @param Model $model
