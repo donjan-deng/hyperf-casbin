@@ -31,7 +31,8 @@ class OnPolicyChangedListener implements ListenerInterface
 
     public function process(object $event)
     {
-        if ($event instanceof PolicyChanged) {
+        $serverManager = $this->container->get(ServerManager::class);
+        if (count($serverManager::list()) > 0 && $event instanceof PolicyChanged) {
             $server = $this->container->get(Server::class);
             $workerCount = $server->setting['worker_num'] + ($server->setting['task_worker_num'] ?? 0) - 1;
             if ($workerCount > 0) {
