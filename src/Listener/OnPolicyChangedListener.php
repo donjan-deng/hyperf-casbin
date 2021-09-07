@@ -8,6 +8,7 @@ use Donjan\Casbin\Event\PolicyChanged;
 use Donjan\Casbin\Event\PipeMessage;
 use Swoole\Server;
 use Hyperf\Process\ProcessCollector;
+use Hyperf\Server\ServerManager;
 
 class OnPolicyChangedListener implements ListenerInterface
 {
