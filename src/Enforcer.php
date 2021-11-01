@@ -8,6 +8,7 @@ use Hyperf\Utils\ApplicationContext;
 
 /**
  * Enforcer
+ * @method static bool enforce(...$rvals)
  * @method static array getRolesForUser(string $name, string ...$domain)
  * @method static array getUsersForRole(string $name, string ...$domain)
  * @method static bool hasRoleForUser(string $name, string $role, string ...$domain)
