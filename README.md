@@ -15,6 +15,10 @@ Casbin只负责访问控制，在RBAC方案中也只是储存用户和角色之�
 
 本项目主版本与Casbin主版本相同，子版本和修订版本为项目独有
 
+#### Master版本增加Redis Watcher
+
+使用Redis Watcher以支持在多线程或者分布式的情况下同步策略,用此版本需要重新发布配置。
+
 #### 3.6 重大变更
 
 3.6以下版本升级3.6需要更改配置文件<https://github.com/donjan-deng/hyperf-casbin/blob/master/publish/casbin.php>照着更改。
