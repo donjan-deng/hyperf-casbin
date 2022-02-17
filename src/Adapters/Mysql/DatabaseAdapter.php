@@ -313,7 +313,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
             }
         }
         $wheres = collect($query->getQuery()->wheres);
-        $wheres->shift();//remove ptype
+        $wheres->shift(); //remove ptype
         $oldRules = [];
         $oldRules[] = $wheres->pluck('value')->all();
         $this->db->beginTransaction();

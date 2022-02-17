@@ -32,6 +32,9 @@ class OnPolicyChangedListener implements ListenerInterface
 
     public function process(object $event)
     {
+        if (config('casbin.watcher.enabled')) { //启用watcher，不响应此事件
+            return;
+        }
         $serverManager = $this->container->get(ServerManager::class);
         if (count($serverManager::list()) > 0 && $event instanceof PolicyChanged) {
             $server = $this->container->get(Server::class);

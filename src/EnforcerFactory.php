@@ -36,7 +36,13 @@ class EnforcerFactory
             throw new InvalidArgumentException("Enforcer adapter is not defined.");
         }
         $adapter = make($config['adapter']['class'], $config['adapter']['constructor']);
-        return new BaseEnforcer($model, $adapter, $config['log']['enabled']);
+        $enforcer = new BaseEnforcer($model, $adapter, $config['log']['enabled']);
+        //set watcher
+        if ($config['watcher'] && $config['watcher']['enabled']) {
+            $watcher = make($config['watcher']['class'], $config['watcher']['constructor']);
+            $enforcer->setWatcher($watcher);
+        }
+        return $enforcer;
     }
 
 }

@@ -23,7 +23,7 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         $this->container = ApplicationContext::getContainer();
-        $this->container->define(\Casbin\Enforcer::class,\Donjan\Casbin\EnforcerFactory::class);
+        $this->container->define(\Casbin\Enforcer::class, \Donjan\Casbin\EnforcerFactory::class);
         $this->config = $this->container->get(ConfigInterface::class);
         $this->app = $this->container->get(ApplicationInterface::class);
         $this->initConfig();
@@ -63,6 +63,13 @@ abstract class TestCase extends BaseTestCase
                 'class' => \Donjan\Casbin\Adapters\Mysql\DatabaseAdapter::class,
                 'constructor' => [
                     'tableName' => 'casbin_rule'
+                ],
+            ],
+            'watcher' => [
+                'enabled' => false,
+                'class' => \Donjan\Casbin\Watchers\RedisWatcher::class,
+                'constructor' => [
+                    'channel' => 'casbin'
                 ],
             ],
             'log' => [
