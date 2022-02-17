@@ -4,6 +4,7 @@ namespace Donjan\Casbin;
 
 use Donjan\Casbin\Listener\OnPipeMessageListener;
 use Donjan\Casbin\Listener\OnPolicyChangedListener;
+use Donjan\Casbin\Process\CasbinProcess;
 use Casbin\Enforcer;
 
 class ConfigProvider
@@ -18,6 +19,9 @@ class ConfigProvider
             'listeners' => [
                 OnPipeMessageListener::class,
                 OnPolicyChangedListener::class,
+            ],
+            'processes' => [
+                CasbinProcess::class,
             ],
             'publish' => [
                 [

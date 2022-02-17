@@ -19,6 +19,16 @@ return [
             'tableName' => 'casbin_rule'
         ],
     ],
+    /*
+     * Casbin watcher
+     */
+    'watcher' => [
+        'enabled' => false,
+        'class' => \Donjan\Casbin\Watchers\RedisWatcher::class,
+        'constructor' => [
+            'channel' => 'casbin'
+        ],
+    ],
     'log' => [
         'enabled' => false,
     ]
