@@ -8,8 +8,10 @@ use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
 use Casbin\Persist\Watcher;
 use Casbin\Rbac\RoleManager;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Hyperf\Utils\ApplicationContext;
+use Psr\Container\NotFoundExceptionInterface;
 
 /**
  * Enforcer
@@ -135,7 +137,7 @@ class Enforcer
 
     /**
      *
-     * @param \Psr\Container\ContainerInterface $container
+     * @param ContainerInterface $container
      */
     public function __construct(ContainerInterface $container)
     {
@@ -147,9 +149,11 @@ class Enforcer
      * @param string $method
      * @param array $parameters
      *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      * @return mixed
      */
-    public static function __callStatic($method, $parameters)
+    public static function __callStatic(string $method, array $parameters)
     {
         return ApplicationContext::getContainer()->get(BaseEnforcer::class)->{$method}(
             ...
