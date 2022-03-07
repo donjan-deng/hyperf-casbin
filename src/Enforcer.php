@@ -8,6 +8,7 @@ use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
 use Casbin\Persist\Watcher;
 use Casbin\Rbac\RoleManager;
+use Closure;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Hyperf\Utils\ApplicationContext;
@@ -16,13 +17,13 @@ use Psr\Container\NotFoundExceptionInterface;
 /**
  * Enforcer
  * @method static void _loadFilteredPolicy($filter)
- * @method static void addFunction(string $name, \Closure $func)
+ * @method static void addFunction(string $name, Closure $func)
  * @method static bool addGroupingPolicies(array $rules)
  * @method static bool addGroupingPolicy(...$params)
- * @method static bool addNamedDomainMatchingFunc(string $ptype, string $name, \Closure $fn)
+ * @method static bool addNamedDomainMatchingFunc(string $ptype, string $name, Closure $fn)
  * @method static bool addNamedGroupingPolicies(string $ptype, array $rules)
  * @method static bool addNamedGroupingPolicy(string $ptype, ...$params)
- * @method static bool addNamedMatchingFunc(string $ptype, string $name, \Closure $fn)
+ * @method static bool addNamedMatchingFunc(string $ptype, string $name, Closure $fn)
  * @method static bool addNamedPolicies(string $ptype, array $rules)
  * @method static bool addNamedPolicy(string $ptype, ...$params)
  * @method static bool addPermissionForUser(string $user, string ...$permission)
@@ -132,6 +133,7 @@ class Enforcer
 
     /**
      * @var ContainerInterface
+     *
      */
     protected $container;
 
