@@ -23,7 +23,7 @@
         "php": ">=7.3",
         "ext-swoole": ">=4.5",
         "hyperf/database": "~3.0",
-        "hyperf/redis": "~2.0",
+        "hyperf/redis": "~3.0",
         "hyperf/process": "~3.0",
         "hyperf/db-connection": "~3.0",
         "hyperf/cache": "~3.0",
