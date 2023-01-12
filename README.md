@@ -106,10 +106,10 @@ Enforcer::enforce("user1", "/user", "edit")
 
 ## 官方资源
 
-* [官方文档](https://casbin.org/docs/zh-CN/overview)
-* [模型编辑器](https://casbin.org/zh-CN/editor)
-* [管理API](https://casbin.org/docs/zh-CN/management-api)
-* [RBAC API](https://casbin.org/docs/zh-CN/rbac-api)
+* [官方文档](https://casbin.org/zh/docs/overview)
+* [模型编辑器](https://casbin.org/zh/editor)
+* [管理API](https://casbin.org/zh/docs/management-api)
+* [RBAC API](https://casbin.org/zh/docs/rbac-api)
 
 ## 参考库
 
