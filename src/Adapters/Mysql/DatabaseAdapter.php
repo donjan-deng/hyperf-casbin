@@ -30,7 +30,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     /**
      * @var bool
      */
-    private $filtered = false;
+    private bool $filtered = false;
 
     /**
      * Rules eloquent model.

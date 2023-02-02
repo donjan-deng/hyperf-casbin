@@ -30,7 +30,7 @@ class OnPolicyChangedListener implements ListenerInterface
         ];
     }
 
-    public function process(object $event)
+    public function process(object $event): void
     {
         if (config('casbin.watcher.enabled')) { //启用watcher，不响应此事件
             return;

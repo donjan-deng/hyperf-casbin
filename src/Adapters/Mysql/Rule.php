@@ -15,14 +15,14 @@ class Rule extends Model
      *
      * @var array
      */
-    protected $fillable = ['ptype', 'v0', 'v1', 'v2', 'v3', 'v4', 'v5'];
+    protected array $fillable = ['ptype', 'v0', 'v1', 'v2', 'v3', 'v4', 'v5'];
 
     /**
      * timestamps
      * 
      * @var bool
      */
-    public $timestamps = false;
+    public bool $timestamps = false;
 
     /**
      * Create a new Eloquent model instance.
