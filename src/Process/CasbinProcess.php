@@ -12,7 +12,7 @@ use Swoole\Server;
 class CasbinProcess extends AbstractProcess
 {
 
-    public string $name = 'casbin-watcher';
+    public $name = 'casbin-watcher';
 
     /**
      * @var Server
