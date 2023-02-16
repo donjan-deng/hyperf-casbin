@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Donjan\Casbin;
 
 use Casbin\Enforcer as BaseEnforcer;

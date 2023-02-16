@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Donjan\Casbin\Process;
 
 use Hyperf\Process\AbstractProcess;
+use Psr\Container\ContainerInterface;
 use Hyperf\Redis\Redis;
 use Donjan\Casbin\Event\PipeMessage;
 use Swoole\Server;
@@ -12,12 +13,16 @@ use Swoole\Server;
 class CasbinProcess extends AbstractProcess
 {
 
-    public $name = 'casbin-watcher';
-
     /**
      * @var Server
      */
     protected $server;
+
+    public function __construct(protected ContainerInterface $container)
+    {
+        $this->name = 'casbin-watcher';
+        parent::__construct($container);
+    }
 
     public function handle(): void
     {
