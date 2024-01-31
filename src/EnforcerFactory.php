@@ -5,19 +5,21 @@ declare(strict_types=1);
 namespace Donjan\Casbin;
 
 use Psr\Container\ContainerInterface;
+use Hyperf\Contract\ConfigInterface;
 use Casbin\Enforcer as BaseEnforcer;
 use Casbin\Model\Model;
 use Casbin\Log\Log;
 use Hyperf\Logger\LoggerFactory;
 use Casbin\Bridge\Logger\LoggerBridge;
 use InvalidArgumentException;
+use function Hyperf\Support\make;
 
 class EnforcerFactory
 {
 
     public function __invoke(ContainerInterface $container)
     {
-        $config = config('casbin');
+        $config = $container->get(ConfigInterface::class)->get('casbin');
         if (is_null($config)) {
             throw new InvalidArgumentException("Enforcer config is not defined.");
         }
@@ -46,5 +48,4 @@ class EnforcerFactory
         }
         return $enforcer;
     }
-
 }

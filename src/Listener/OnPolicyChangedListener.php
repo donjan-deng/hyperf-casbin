@@ -6,6 +6,7 @@ namespace Donjan\Casbin\Listener;
 
 use Psr\Container\ContainerInterface;
 use Hyperf\Event\Contract\ListenerInterface;
+use Hyperf\Contract\ConfigInterface;
 use Donjan\Casbin\Event\PolicyChanged;
 use Donjan\Casbin\Event\PipeMessage;
 use Swoole\Server;
@@ -19,10 +20,12 @@ class OnPolicyChangedListener implements ListenerInterface
      * @var ContainerInterface
      */
     private $container;
+    private $config;
 
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
+        $this->config = $this->container->get(ConfigInterface::class);
     }
 
     public function listen(): array
@@ -34,7 +37,7 @@ class OnPolicyChangedListener implements ListenerInterface
 
     public function process(object $event): void
     {
-        if (config('casbin.watcher.enabled')) { //启用watcher，不响应此事件
+        if ($this->config->get('casbin.watcher.enabled')) { //启用watcher，不响应此事件
             return;
         }
         $serverManager = $this->container->get(ServerManager::class);
@@ -59,5 +62,4 @@ class OnPolicyChangedListener implements ListenerInterface
             }
         }
     }
-
 }

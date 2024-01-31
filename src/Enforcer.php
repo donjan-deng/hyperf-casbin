@@ -6,7 +6,7 @@ namespace Donjan\Casbin;
 
 use Casbin\Enforcer as BaseEnforcer;
 use Psr\Container\ContainerInterface;
-use Hyperf\Utils\ApplicationContext;
+use Hyperf\Context\ApplicationContext;
 
 /**
  * Enforcer

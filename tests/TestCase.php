@@ -4,14 +4,12 @@ namespace Donjan\Casbin\Tests;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Hyperf\Database\Schema\Schema;
-use Hyperf\Database\Schema\Blueprint;
 use Hyperf\Contract\ConfigInterface;
-use Hyperf\Utils\ApplicationContext;
-use Hyperf\Cache\Driver\FileSystemDriver;
-use Hyperf\Utils\Packer\PhpSerializerPacker;
+use Hyperf\Context\ApplicationContext;
 use Hyperf\Contract\ApplicationInterface;
 use Donjan\Casbin\Enforcer;
 use Mockery;
+use function Hyperf\Support\env;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -40,8 +38,8 @@ abstract class TestCase extends BaseTestCase
                 'port' => env('DB_PORT', 3306),
                 'username' => env('DB_USERNAME', 'root'),
                 'password' => env('DB_PASSWORD', ''),
-                'charset' => env('DB_CHARSET', 'utf8'),
-                'collation' => env('DB_COLLATION', 'utf8_unicode_ci'),
+                'charset' => env('DB_CHARSET', 'utf8mb4'),
+                'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
                 'prefix' => env('DB_PREFIX', ''),
                 'pool' => [
                     'min_connections' => 1,
@@ -89,7 +87,7 @@ abstract class TestCase extends BaseTestCase
 
     protected function tearDown(): void
     {
-        Schema::dropIfExists(config('casbin.adapter.constructor.tableName'));
+        Schema::dropIfExists($this->config->get('casbin.adapter.constructor.tableName'));
         $this->delDir(BASE_PATH . '/runtime/container');
         Mockery::close();
     }
@@ -112,5 +110,4 @@ abstract class TestCase extends BaseTestCase
             @rmdir($path);
         }
     }
-
 }

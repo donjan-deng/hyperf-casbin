@@ -18,6 +18,8 @@ use Casbin\Model\Model;
 use Casbin\Persist\AdapterHelper;
 use Casbin\Exceptions\InvalidFilterTypeException;
 use Donjan\Casbin\Event\PolicyChanged;
+use Hyperf\Collection\Collection;
+use function Hyperf\Support\make;
 
 /**
  * DatabaseAdapter.
@@ -70,8 +72,8 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     public function __construct(ContainerInterface $container, $tableName)
     {
         $this->tableName = $tableName;
-        $this->eloquent = make(Rule::class, ['attributes' => [], 'table' => $this->tableName]);
         $this->container = $container;
+        $this->eloquent = make(Rule::class, ['attributes' => [], 'table' => $this->tableName]);
         $this->db = $this->container->get(Db::class);
         $this->eventDispatcher = $this->container->get(EventDispatcherInterface::class);
         $this->initTable();
@@ -312,7 +314,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
                 }
             }
         }
-        $wheres = collect($query->getQuery()->wheres);
+        $wheres = new Collection($query->getQuery()->wheres);
         $wheres->shift(); //remove ptype
         $oldRules = [];
         $oldRules[] = $wheres->pluck('value')->all();
@@ -352,7 +354,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
         }
         $rows = $query->get()->makeHidden(['id'])->toArray();
         foreach ($rows as $row) {
-            $row = array_filter($row, function($value) {
+            $row = array_filter($row, function ($value) {
                 return !is_null($value) && $value !== '';
             });
             $line = implode(', ', array_filter($row, function ($val) {
@@ -382,5 +384,4 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     {
         $this->filtered = $filtered;
     }
-
 }

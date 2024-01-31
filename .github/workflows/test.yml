@@ -11,28 +11,18 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        php-version: ["8.0", "8.1", "8.2"]
-        sw-version: ["v4.5.11", "v4.6.7", "v4.7.1", "v4.8.12", "v5.0.1", "master"]
+        php-version: ["8.1", "8.2","8.3"]
+        sw-version: ["v5.0.3","v5.1.2", "master"]
         exclude:
           - php-version: "8.1"
-            sw-version: "v4.5.11"
-          - php-version: "8.1"
-            sw-version: "v4.6.7"
-          - php-version: "8.1"
-            sw-version: "v4.7.1"
-          - php-version: "8.2"
-            sw-version: "v4.5.11"
-          - php-version: "8.2"
-            sw-version: "v4.6.7"
-          - php-version: "8.2"
-            sw-version: "v4.7.1"
-          - php-version: "8.2"
-            sw-version: "v4.8.12"
+            sw-version: "v5.1.2"
+          - php-version: "8.3"
+            sw-version: "v5.0.3"
       max-parallel: 12
       fail-fast: false
     env:
       SW_VERSION: ${{ matrix.sw-version }}
-      MYSQL_VERSION: "5.7"
+      MYSQL_VERSION: "8.0"
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -54,12 +44,7 @@ jobs:
           rm swoole.tar.gz
           cd swoole
           phpize
-          if [ _${{ matrix.sw-version }} = '_v5.0.1' ] || [ _${{ matrix.sw-version }} = '_master' ]
-          then
-            ./configure --enable-openssl --enable-swoole-curl --enable-cares --enable-swoole-pgsql --enable-brotli
-          else
-            ./configure --enable-openssl --enable-http2 --enable-swoole-curl --enable-swoole-json
-          fi
+          ./configure --enable-openssl --enable-swoole-curl --enable-cares --enable-swoole-pgsql --enable-brotli
           make -j$(nproc)
           sudo make install
           sudo sh -c "echo extension=swoole > /etc/php/${{ matrix.php-version }}/cli/conf.d/swoole.ini"
