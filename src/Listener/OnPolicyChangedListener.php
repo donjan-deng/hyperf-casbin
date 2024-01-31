@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Donjan\Casbin\Listener;
 
+use Hyperf\Contract\ConfigInterface;
 use Psr\Container\ContainerInterface;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Contract\ConfigInterface;
@@ -42,12 +43,18 @@ class OnPolicyChangedListener implements ListenerInterface
         }
         $serverManager = $this->container->get(ServerManager::class);
         if (count($serverManager::list()) > 0 && $event instanceof PolicyChanged) {
-            $server = $this->container->get(Server::class);
-            $workerCount = $server->setting['worker_num'] + ($server->setting['task_worker_num'] ?? 0) - 1;
-            if ($workerCount > 0) {
-                for ($workerId = 0; $workerId <= $workerCount; ++$workerId) {
-                    if ($server->worker_id > -1 && $server->worker_id != $workerId) {
-                        $server->sendMessage(new PipeMessage(PipeMessage::LOAD_POLICY), $workerId);
+            $serverConfig = $this->container->get(ConfigInterface::class)->get('server', []);
+            if (! $serverConfig) {
+                throw new \InvalidArgumentException('At least one server should be defined.');
+            }
+            if ($serverConfig['type'] == Server::class) {
+                $server = $this->container->get(Server::class);
+                $workerCount = $server->setting['worker_num'] + ($server->setting['task_worker_num'] ?? 0) - 1;
+                if ($workerCount > 0) {
+                    for ($workerId = 0; $workerId <= $workerCount; ++$workerId) {
+                        if ($server->worker_id > -1 && $server->worker_id != $workerId) {
+                            $server->sendMessage(new PipeMessage(PipeMessage::LOAD_POLICY), $workerId);
+                        }
                     }
                 }
             }
