@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Donjan\Casbin\Listener;
 
-use Hyperf\Contract\ConfigInterface;
 use Psr\Container\ContainerInterface;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Contract\ConfigInterface;
