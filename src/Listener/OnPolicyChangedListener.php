@@ -22,9 +22,12 @@ class OnPolicyChangedListener implements ListenerInterface
      */
     private $container;
 
-    public function __construct(ContainerInterface $container)
+    private $config;
+
+    public function __construct(ContainerInterface $container, ConfigInterface $config)
     {
         $this->container = $container;
+        $this->config = $config;
     }
 
     public function listen(): array
@@ -36,7 +39,7 @@ class OnPolicyChangedListener implements ListenerInterface
 
     public function process(object $event): void
     {
-        if (config('casbin.watcher.enabled')) { //启用watcher，不响应此事件
+        if ($this->config->get('casbin.watcher.enabled')) { //启用watcher，不响应此事件
             return;
         }
         $serverManager = $this->container->get(ServerManager::class);
